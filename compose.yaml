@@ -1,0 +1,26 @@
+name: apimirror-playground
+
+services:
+  playground:
+    image: ${DOCKERHUB_USERNAME:-local}/apimirror-playground:${IMAGE_TAG:-local}
+    build:
+      context: ..
+      dockerfile: playground/Dockerfile
+    restart: unless-stopped
+    init: true
+    env_file:
+      - .env
+    ports:
+      - "${PLAYGROUND_HOST_PORT:-3002}:3002"
+    healthcheck:
+      test: ["CMD", "bun", "-e", "const r = await fetch('http://localhost:3002/health'); process.exit(r.ok ? 0 : 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - api-mirror-network
+
+networks:
+  api-mirror-network:
+    name: api-mirror-network
+    external: true
